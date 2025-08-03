@@ -1,0 +1,17 @@
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# pyenv
+.python-version
+
+# Environments
+.env
+.env.local
+.venv
+
+# IDE
+.idea/*
