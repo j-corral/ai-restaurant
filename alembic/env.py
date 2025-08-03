@@ -9,7 +9,8 @@ load_dotenv()
 
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
-from app.model import user
+# from app.model import User, MenuItem, Order, OrderItem
+from app.model import *
 
 config = context.config
 
