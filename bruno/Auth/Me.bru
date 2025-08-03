@@ -1,0 +1,32 @@
+meta {
+  name: Get Current User Info (/me)
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{apiUrl}}/auth/me
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+tests {
+  test("User info retrieved successfully", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody()).to.have.property('id');
+    expect(res.getBody()).to.have.property('username');
+    expect(res.getBody()).to.have.property('is_owner');
+  });
+
+  test("Username should be massimo", function() {
+    expect(res.getBody().username).to.equal('massimo');
+  });
+
+  test("User should be admin", function() {
+    expect(res.getBody().is_owner).to.equal(true);
+  });
+}
