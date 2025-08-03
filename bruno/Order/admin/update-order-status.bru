@@ -1,0 +1,26 @@
+meta {
+  name: Update Order Status (Admin)
+  type: http
+  seq: 3
+}
+
+patch {
+  url: {{apiUrl}}/api/orders/admin/{{orderId}}/status
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  "confirmed"
+}
+
+tests {
+  test("Order status updated successfully", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().status).to.equal('confirmed');
+  });
+}

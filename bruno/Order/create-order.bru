@@ -1,0 +1,42 @@
+meta {
+  name: Create Order (Public)
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{apiUrl}}/api/orders/
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "customer_name": "Jean Dupont",
+    "customer_phone": "0123456789",
+    "customer_email": "jean.dupont@email.com",
+    "items": [
+      {
+        "menu_item_id": 1,
+        "quantity": 2
+      },
+      {
+        "menu_item_id": 2,
+        "quantity": 1
+      }
+    ]
+  }
+}
+
+tests {
+  test("Order created successfully", function() {
+    expect(res.getStatus()).to.equal(201);
+    expect(res.getBody()).to.have.property('id');
+    expect(res.getBody()).to.have.property('total_amount');
+  });
+
+  // Stocker l'ID de la commande
+  if (res.getStatus() === 201) {
+    bru.setEnvVar("orderId", res.getBody().id);
+  }
+}

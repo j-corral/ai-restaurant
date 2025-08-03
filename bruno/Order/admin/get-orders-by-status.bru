@@ -1,0 +1,22 @@
+meta {
+  name: Get Orders by Status (Admin)
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{apiUrl}}/api/orders/admin/status/pending
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+tests {
+  test("Orders by status retrieved successfully", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody()).to.be.an('array');
+  });
+}

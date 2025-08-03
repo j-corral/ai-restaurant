@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "name": "resto",
+  "name": "Pizza Restaurant API",
   "type": "collection",
   "ignore": [
     "node_modules",

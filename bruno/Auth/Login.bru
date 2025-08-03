@@ -20,3 +20,15 @@ body:json {
 settings {
   encodeUrl: true
 }
+
+tests {
+  test("Login successful", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody()).to.have.property('access_token');
+  });
+
+  // Stocker le token automatiquement
+  if (res.getStatus() === 200) {
+    bru.setEnvVar("token", res.getBody().access_token);
+  }
+}

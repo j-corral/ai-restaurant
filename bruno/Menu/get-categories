@@ -1,0 +1,18 @@
+meta {
+  name: Get Categories (Public)
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{apiUrl}}/api/menu/categories
+  body: none
+  auth: none
+}
+
+tests {
+  test("Categories retrieved successfully", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody()).to.have.property('categories');
+  });
+}
