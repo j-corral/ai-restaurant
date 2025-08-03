@@ -26,10 +26,9 @@ run_migrations() {
 
 start_app() {
     log "🚀 Démarrage de l'application FastAPI..."
-    exec uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
+    exec uvicorn app.main:app --host 0.0.0.0 --port 8000
 }
 
 # Exécution principale
-wait_for_db
-run_migrations
 start_app
+run_migrations
