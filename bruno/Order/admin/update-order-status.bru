@@ -5,17 +5,17 @@ meta {
 }
 
 patch {
-  url: {{apiUrl}}/orders/admin/{{orderId}}/status
+  url: {{apiUrl}}/orders/admin/{{orderId}}/status?new_status=confirmed
   body: json
   auth: bearer
 }
 
-auth:bearer {
-  token: {{token}}
+params:query {
+  new_status: confirmed
 }
 
-body:json {
-  "confirmed"
+auth:bearer {
+  token: {{token}}
 }
 
 tests {
