@@ -4,7 +4,7 @@ from sqlmodel import select
 from app.model.order import Order, OrderItem
 from app.model.menu import MenuItem
 from app.model.user import User
-from app.schema.order import OrderCreate, OrderRead
+from app.schema.order import OrderCreate, OrderRead, OrderItemRead
 from app.db.session import async_session
 from app.core.security import get_current_admin
 
@@ -15,7 +15,6 @@ router = APIRouter()
 
 @router.post("/", response_model=OrderRead, status_code=status.HTTP_201_CREATED)
 async def create_order(order_data: OrderCreate):
-    """Passer une commande - accessible à tous"""
     async with async_session() as session:
         # Vérifier que tous les items existent et sont disponibles
         total_amount = 0
@@ -47,7 +46,6 @@ async def create_order(order_data: OrderCreate):
                 "unit_price": menu_item.price
             })
 
-        # Créer la commande
         db_order = Order(
             customer_name=order_data.customer_name,
             customer_phone=order_data.customer_phone,
@@ -55,25 +53,36 @@ async def create_order(order_data: OrderCreate):
             total_amount=total_amount
         )
         session.add(db_order)
-        await session.flush()  # Pour obtenir l'ID
+        await session.flush()
 
-        # Créer les items de commande
+        created_items = []
         for item_data in order_items_data:
             order_item = OrderItem(
                 order_id=db_order.id,
                 **item_data
             )
             session.add(order_item)
+            created_items.append(order_item)
 
         await session.commit()
-        await session.refresh(db_order)
 
-        # Recharger avec les items
-        query = select(Order).where(Order.id == db_order.id)
-        result = await session.execute(query)
-        order_with_items = result.scalar_one()
-
-        return order_with_items
+        return OrderRead(
+            id=db_order.id,
+            customer_name=db_order.customer_name,
+            customer_phone=db_order.customer_phone,
+            customer_email=db_order.customer_email,
+            total_amount=db_order.total_amount,
+            status=db_order.status,
+            created_at=db_order.created_at,
+            items=[
+                OrderItemRead(
+                    id=item.id,
+                    menu_item_id=item.menu_item_id,
+                    quantity=item.quantity,
+                    unit_price=item.unit_price
+                ) for item in created_items
+            ]
+        )
 
 
 @router.get("/{order_id}", response_model=OrderRead)
