@@ -5,7 +5,7 @@ meta {
 }
 
 post {
-  url: {{apiUrl}}/api/menu/admin/
+  url: {{apiUrl}}/menu/admin/
   body: json
   auth: bearer
 }
@@ -16,12 +16,12 @@ auth:bearer {
 
 body:json {
   {
-    "name": "Pizza Margherita",
-    "description": "Tomate, mozzarella, basilic frais",
-    "price": 12.50,
+    "name": "Pizza Veggie",
+    "description": "Tomate, tomates cerises, champignons, artichauts, Basilic frais",
+    "price": 14.50,
     "category": "pizza",
     "available": true,
-    "image_url": "https://example.com/margherita.jpg"
+    "image_url": "https://example.com/veggie.jpg"
   }
 }
 
@@ -31,7 +31,7 @@ tests {
     expect(res.getBody()).to.have.property('id');
     expect(res.getBody().name).to.equal('Pizza Margherita');
   });
-
+  
   // Stocker l'ID pour les autres tests
   if (res.getStatus() === 201) {
     bru.setEnvVar("menuItemId", res.getBody().id);
