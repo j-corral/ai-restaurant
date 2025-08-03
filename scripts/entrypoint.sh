@@ -5,15 +5,6 @@ log() {
     echo "[$(date +'%Y-%m-%d %H:%M:%S')] $1"
 }
 
-wait_for_db() {
-    log "⏳ Attente de la base de données..."
-    while ! pg_isready -h db -p 5432 -U user; do
-        log "Base de données non disponible, attente..."
-        sleep 2
-    done
-    log "✅ Base de données disponible"
-}
-
 run_migrations() {
     log "🔄 Lancement des migrations Alembic..."
     if alembic upgrade head; then
