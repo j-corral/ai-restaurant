@@ -7,7 +7,6 @@ from app.model.user import User
 from app.schema.order import OrderCreate, OrderRead, OrderItemRead
 from app.db.session import async_session
 from app.core.security import get_current_admin
-from sqlalchemy.orm import selectinload
 
 router = APIRouter()
 
@@ -90,14 +89,37 @@ async def create_order(order_data: OrderCreate):
 async def get_order(order_id: int):
     """Récupérer une commande par son ID"""
     async with async_session() as session:
-        query = select(Order).options(selectinload(Order.items)).where(Order.id == order_id)
-        result = await session.execute(query)
-        order = result.scalar_one_or_none()
+        # Récupérer la commande
+        order_query = select(Order).where(Order.id == order_id)
+        order_result = await session.execute(order_query)
+        order = order_result.scalar_one_or_none()
 
         if not order:
             raise HTTPException(status_code=404, detail="Order not found")
 
-        return order
+        # Récupérer les items
+        items_query = select(OrderItem).where(OrderItem.order_id == order_id)
+        items_result = await session.execute(items_query)
+        items = items_result.scalars().all()
+
+        # Construire la réponse
+        return OrderRead(
+            id=order.id,
+            customer_name=order.customer_name,
+            customer_phone=order.customer_phone,
+            customer_email=order.customer_email,
+            total_amount=order.total_amount,
+            status=order.status,
+            created_at=order.created_at,
+            items=[
+                OrderItemRead(
+                    id=item.id,
+                    menu_item_id=item.menu_item_id,
+                    quantity=item.quantity,
+                    unit_price=item.unit_price
+                ) for item in items
+            ]
+        )
 
 
 # === ROUTES ADMIN ===
@@ -106,21 +128,96 @@ async def get_order(order_id: int):
 async def get_all_orders(current_admin: User = Depends(get_current_admin)):
     """Voir toutes les commandes - Admin seulement"""
     async with async_session() as session:
-        query = select(Order).options(selectinload(Order.items)).order_by(Order.created_at.desc())
-        result = await session.execute(query)
-        return result.scalars().all()
+        orders_query = select(Order).order_by(Order.created_at.desc())
+        orders_result = await session.execute(orders_query)
+        orders = orders_result.scalars().all()
+
+        if not orders:
+            return []
+
+        order_ids = [order.id for order in orders]
+        items_query = select(OrderItem).where(OrderItem.order_id.in_(order_ids))
+        items_result = await session.execute(items_query)
+        all_items = items_result.scalars().all()
+
+        items_by_order = {}
+        for item in all_items:
+            if item.order_id not in items_by_order:
+                items_by_order[item.order_id] = []
+            items_by_order[item.order_id].append(item)
+
+        orders_read = []
+        for order in orders:
+            order_items = items_by_order.get(order.id, [])
+            orders_read.append(OrderRead(
+                id=order.id,
+                customer_name=order.customer_name,
+                customer_phone=order.customer_phone,
+                customer_email=order.customer_email,
+                total_amount=order.total_amount,
+                status=order.status,
+                created_at=order.created_at,
+                items=[
+                    OrderItemRead(
+                        id=item.id,
+                        menu_item_id=item.menu_item_id,
+                        quantity=item.quantity,
+                        unit_price=item.unit_price
+                    ) for item in order_items
+                ]
+            ))
+
+        return orders_read
 
 
 @router.get("/admin/status/{status}", response_model=List[OrderRead])
 async def get_orders_by_status(
-    status: str,
-    current_admin: User = Depends(get_current_admin)
+        status: str,
+        current_admin: User = Depends(get_current_admin)
 ):
     """Filtrer les commandes par statut - Admin seulement"""
     async with async_session() as session:
-        query = select(Order).options(selectinload(Order.items)).where(Order.status == status).order_by(Order.created_at.desc())
-        result = await session.execute(query)
-        return result.scalars().all()
+        # Récupérer les commandes par statut
+        orders_query = select(Order).where(Order.status == status).order_by(Order.created_at.desc())
+        orders_result = await session.execute(orders_query)
+        orders = orders_result.scalars().all()
+
+        if not orders:
+            return []
+
+        order_ids = [order.id for order in orders]
+        items_query = select(OrderItem).where(OrderItem.order_id.in_(order_ids))
+        items_result = await session.execute(items_query)
+        all_items = items_result.scalars().all()
+
+        items_by_order = {}
+        for item in all_items:
+            if item.order_id not in items_by_order:
+                items_by_order[item.order_id] = []
+            items_by_order[item.order_id].append(item)
+
+        orders_read = []
+        for order in orders:
+            order_items = items_by_order.get(order.id, [])
+            orders_read.append(OrderRead(
+                id=order.id,
+                customer_name=order.customer_name,
+                customer_phone=order.customer_phone,
+                customer_email=order.customer_email,
+                total_amount=order.total_amount,
+                status=order.status,
+                created_at=order.created_at,
+                items=[
+                    OrderItemRead(
+                        id=item.id,
+                        menu_item_id=item.menu_item_id,
+                        quantity=item.quantity,
+                        unit_price=item.unit_price
+                    ) for item in order_items
+                ]
+            ))
+
+        return orders_read
 
 
 @router.patch("/admin/{order_id}/status")
