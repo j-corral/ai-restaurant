@@ -7,6 +7,7 @@ from app.model.user import User
 from app.schema.order import OrderCreate, OrderRead, OrderItemRead
 from app.db.session import async_session
 from app.core.security import get_current_admin
+from sqlalchemy.orm import selectinload
 
 router = APIRouter()
 
@@ -87,9 +88,9 @@ async def create_order(order_data: OrderCreate):
 
 @router.get("/{order_id}", response_model=OrderRead)
 async def get_order(order_id: int):
-    """Récupérer une commande par son ID - accessible à tous"""
+    """Récupérer une commande par son ID"""
     async with async_session() as session:
-        query = select(Order).where(Order.id == order_id)
+        query = select(Order).options(selectinload(Order.items)).where(Order.id == order_id)
         result = await session.execute(query)
         order = result.scalar_one_or_none()
 
@@ -105,19 +106,19 @@ async def get_order(order_id: int):
 async def get_all_orders(current_admin: User = Depends(get_current_admin)):
     """Voir toutes les commandes - Admin seulement"""
     async with async_session() as session:
-        query = select(Order).order_by(Order.created_at.desc())
+        query = select(Order).options(selectinload(Order.items)).order_by(Order.created_at.desc())
         result = await session.execute(query)
         return result.scalars().all()
 
 
 @router.get("/admin/status/{status}", response_model=List[OrderRead])
 async def get_orders_by_status(
-        status: str,
-        current_admin: User = Depends(get_current_admin)
+    status: str,
+    current_admin: User = Depends(get_current_admin)
 ):
     """Filtrer les commandes par statut - Admin seulement"""
     async with async_session() as session:
-        query = select(Order).where(Order.status == status).order_by(Order.created_at.desc())
+        query = select(Order).options(selectinload(Order.items)).where(Order.status == status).order_by(Order.created_at.desc())
         result = await session.execute(query)
         return result.scalars().all()
 
