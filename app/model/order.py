@@ -12,7 +12,7 @@ class OrderItem(SQLModel, table=True):
     menu_item_id: int = Field(foreign_key="menuitem.id")
     quantity: int
     unit_price: float
-    order: Optional["Order"] = Relationship(back_populates="items")
+    # order: Optional["Order"] = Relationship(back_populates="items")
     menu_item: Optional["MenuItem"] = Relationship()
 
 
@@ -24,4 +24,4 @@ class Order(SQLModel, table=True):
     total_amount: float
     status: str = "pending"
     created_at: datetime = Field(default_factory=datetime.utcnow)
-    items: List[OrderItem] = Relationship(back_populates="order")
+    # items: List[OrderItem] = Relationship(back_populates="order")
