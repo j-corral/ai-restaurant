@@ -174,20 +174,67 @@ TWILIO_AUTH_TOKEN=your-twilio-token
 - `PATCH /api/orders/admin/{id}/status` - Modifier le statut
 
 
-## Utilisation de l'agent vocal
+## Utilisation de l'agent vocal (coming soon)
 
 1. **Configuration Retell AI** avec le prompt optimisé
 2. **Déploiement du workflow n8n** pour l'intégration
 3. **Configuration du numéro de téléphone** via Twilio
 4. **Test et mise en production**
 
-### Exemple d'appel client (coming soon)
+### Exemple d'appel client
 
 ```
 Client: "Bonjour, je voudrais commander 2 Pizza Margherita et 1 Coca-Cola"
 Sofia: "Parfait ! Donc 2 Pizza Margherita et 1 Coca-Cola. Puis-je avoir votre nom et numéro de téléphone ?"
 Client: "Jean Dupont, 0123456789"
 Sofia: "Merci ! Votre commande sera prête dans 20 minutes pour un total de 27,50€"
+```
+
+### Schéma visuel simplifié
+```
+1. 📞 Client appelle
+        ↓
+2. 🔄 Twilio reçoit
+        ↓
+3. 🤖 Retell AI (Sofia) répond
+        ↓
+4. 💬 Conversation IA ↔️ Client
+        ↓
+5. 📝 Fin d'appel → Transcription
+        ↓
+6. 🔗 Webhook → n8n
+        ↓
+7. 🧠 n8n + LLama3.2 analysent
+        ↓
+8. 📋 Récupération menu API
+        ↓
+9. 💾 Création commande API
+        ↓
+10. ✅ Commande en base PostgreSQL
+```
+
+
+### Webhook envoyé à n8n
+
+```json
+{
+  "call_id": "abc123",
+  "transcript": "Client: Bonjour, je voudrais 2 Pizza Margherita et 1 Coca-Cola. Sofia: Parfait ! Puis-je avoir votre nom ? Client: Jean Dupont. Sofia: Et votre numéro ? Client: 01 23 45 67 89",
+  "customer_phone": "0123456789"
+}
+```
+
+### n8n créé la commande via Pizzapi
+
+```json
+{
+  "customer_name": "Jean Dupont",
+  "customer_phone": "0123456789", 
+  "items": [
+    {"menu_item_id": 1, "quantity": 2},
+    {"menu_item_id": 3, "quantity": 1}
+  ]
+}
 ```
 
 
